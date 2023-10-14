@@ -1,0 +1,37 @@
+# コンテナ内のユーザをWSL側のユーザに一致させるにはuser:を指定し、
+# 以下のコマンドで立ち上げる
+# UID_GID="$(id -u):$(id -g)" docker-compose up
+services:
+  backend:
+    build:
+      context: ./backend/
+      dockerfile: Dockerfile
+    ports:
+      - 8080:8080
+    volumes:
+      - ./backend:/app 
+    depends_on:
+      - db
+    user: "${UID_GID}"
+  frontend:
+    build:
+      context: ./frontend/
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontend:/app
+    ports:
+      - 3000:3000 
+    user: "${UID_GID}"
+  db:
+    image: "postgres:15-alpine"
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=db
+    volumes:
+      - db-store:/var/lib/postgresql/data
+    user: "${UID_GID}"
+
+volumes:
+  db-store:
